@@ -1,0 +1,38 @@
+allOf:
+  - $ref: '#/components/schemas/ContainerKey'
+  - type: object
+    required: 
+    - attributes
+    properties: 
+      attributes:
+        type: object
+        required:
+          -	group
+          - owner
+          - recipient
+          - container
+          - tag 
+        properties:
+          group:
+            type: boolean
+            example: true
+          recipient:
+            type: array
+            items:
+              type: string
+            example:  "0xa781b36ba9b393e67b0b50d6255637f28353409d8e390645beb408cc64b108db"
+          owner: 
+            type: string
+            example: "0xa781b36ba9b393e67b0b50d6255637f28353409d8e390645beb408cc64b108db"
+          container:
+            type: string
+            example: "781b36ba9b393e67b0b50d6255637f28353409d8e390645beb408cc64b108db" 
+          tag: 
+            type: string 
+            example: "tag1"
+          key:
+            type: string
+            example: "sdfsdfdsfd"
+          text:
+            type: string
+            example: "sdf sdf"
