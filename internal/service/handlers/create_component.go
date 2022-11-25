@@ -1,13 +1,13 @@
 package handlers
 
+import "C"
 import (
 	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/data"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/service/requests"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/resources"
-	"net/http"
-
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
+	"net/http"
 )
 
 func CreateContainer(w http.ResponseWriter, r *http.Request) {
@@ -19,20 +19,29 @@ func CreateContainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	blob := data.Container{
-		Owner:     request.Data.Attributes.Owner,
-		Recipient: request.Data.Attributes.Recipient,
+	encodedContainer, err := data.Encryption([]byte(request.Data.Attributes.Text), []byte(request.Data.Attributes.Key))
+	group := false
+	if len(request.Data.Attributes.Recipient) > 0 {
+		group = true
 	}
 
-	blob.ID, err = helpers.BlobsQ(r).Insert(blob)
+	container := data.Container{
+		Owner:     request.Data.Attributes.Owner,
+		Recipient: request.Data.Attributes.Recipient,
+		Group:     group,
+		Container: string(encodedContainer),
+		Tag:       request.Data.Attributes.Tag,
+	}
+
+	container.ID, err = ContainerQ(r).Insert(container)
 	if err != nil {
-		helpers.Log(r).WithError(err).Error("failed to create blob in DB")
+		Log(r).WithError(err).Error("failed to create blob in DB")
 		ape.Render(w, problems.InternalError())
 		return
 	}
 
-	result := resources.BlobResponse{
-		Data: newBlobModel(blob),
+	result := resources.ContainerResponse{
+		Data: newContainerModel(container),
 	}
 	ape.Render(w, result)
 }

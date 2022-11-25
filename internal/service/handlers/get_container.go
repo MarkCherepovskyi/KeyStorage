@@ -18,7 +18,7 @@ func GetContainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *request.Data.Attributes.Key == "" {
+	if request.Data.Attributes.Key == "" {
 		//generate new kay
 	}
 
@@ -39,7 +39,7 @@ func GetContainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bufferContainer, err := data.Decryption([]byte(*request.Data.Attributes.Text), []byte(*request.Data.Attributes.Key))
+	bufferContainer, err := data.Decryption([]byte(request.Data.Attributes.Text), []byte(request.Data.Attributes.Key))
 	if err != nil {
 		Log(r).WithError(err).Error("failed to get blob from DB")
 		ape.Render(w, problems.InternalError())
