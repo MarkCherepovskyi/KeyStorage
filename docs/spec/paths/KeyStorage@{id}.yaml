@@ -1,0 +1,52 @@
+parameters:
+  - name: id
+    in: path
+    description: container identifier
+    required: true
+    schema:
+      type: string
+get:
+  tags:
+    - Container
+  summary: Get container
+  operationId: getContainer
+
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                $ref: '#/components/schemas/Container'
+    '400':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - errors
+            properties:
+              errors:
+                type: array
+                items:
+                  $ref: "#/components/responses/BadRequest"
+    '404':
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - errors
+            properties:
+              errors:
+                type: array
+                items:
+                  $ref: "#/components/responses/NotFound"
+    '500':
+      $ref: "#/components/responses/InternalError"

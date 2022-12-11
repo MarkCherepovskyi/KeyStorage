@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"crypto/sha256"
+	"github.com/tyler-smith/go-bip32"
+	"github.com/tyler-smith/go-bip39"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/data"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/service/requests"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/resources"
@@ -8,6 +11,7 @@ import (
 	"gitlab.com/distributed_lab/ape/problems"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func GetContainer(w http.ResponseWriter, r *http.Request) {
@@ -16,10 +20,6 @@ func GetContainer(w http.ResponseWriter, r *http.Request) {
 		Log(r).WithError(err).Error("failed to create tx")
 		ape.Render(w, problems.InternalError())
 		return
-	}
-
-	if request.Data.Attributes.Key == "" {
-		//generate new kay
 	}
 
 	id, err := strconv.Atoi(request.Data.ID)
@@ -39,19 +39,45 @@ func GetContainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bufferContainer, err := data.Decryption([]byte(request.Data.Attributes.Text), []byte(request.Data.Attributes.Key))
-	if err != nil {
-		Log(r).WithError(err).Error("failed to get blob from DB")
-		ape.Render(w, problems.InternalError())
-		return
+	key := new(bip32.Key)
+
+	if strings.Contains(request.Data.Attributes.Key, " ") {
+
+		seed := bip39.NewSeed(request.Data.Attributes.Key, "TREZOR")
+
+		key, _ = bip32.NewMasterKey(seed)
+
 	}
+
+	var bufferContainer []byte
+
+	if key.Key != nil {
+
+		hash := sha256.Sum256([]byte(key.String()))
+
+		bufferContainer, err = data.Decryption([]byte(request.Data.Attributes.Text), hash[:])
+		if err != nil {
+			Log(r).WithError(err).Error("failed to create blob in DB")
+			ape.Render(w, problems.InternalError())
+			return
+		}
+	} else {
+		hash := sha256.Sum256([]byte(request.Data.Attributes.Key))
+		bufferContainer, err = data.Decryption(container.Container, hash[:])
+		if err != nil {
+			Log(r).WithError(err).Error("failed to create blob in DB")
+			ape.Render(w, problems.InternalError())
+			return
+		}
+	}
+
 	if err != nil {
 		Log(r).WithError(err).Error("failed to create tx")
 		ape.Render(w, problems.InternalError())
 		return
 	}
 
-	container.Container = string(bufferContainer)
+	container.Container = bufferContainer
 	result := resources.ContainerResponse{
 		Data: newContainerModel(*container),
 	}

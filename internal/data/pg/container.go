@@ -44,14 +44,13 @@ func (q *ContainerQ) Select() ([]data.Container, error) {
 	return result, err
 }
 
-func (q *ContainerQ) Insert(value data.Container) (int64, error) {
+func (q *ContainerQ) Insert(value data.Container) error {
 	clauses := structs.Map(value)
-	var id int64
 
-	stmt := sq.Insert(containersTableName).SetMap(clauses).Suffix("returning id")
-	err := q.db.Get(&id, stmt)
+	stmt := sq.Insert(containersTableName).SetMap(clauses).Suffix("returning *")
+	err := q.db.Exec(stmt)
 
-	return id, err
+	return err
 }
 func (q *ContainerQ) Page(pageParams pgdb.OffsetPageParams) data.ContainerQ {
 	q.sql = pageParams.ApplyTo(q.sql, "id")

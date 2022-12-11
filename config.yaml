@@ -3,10 +3,10 @@ log:
   disable_sentry: true
 
 db:
-  url: db_url
+  url: postgres://postgres:password@172.17.0.1:5432/containers?sslmode=disable
 
 listener:
-  addr: :8000
+  addr: :8781
 
 cop:
   disabled: true

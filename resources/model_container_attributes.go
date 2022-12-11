@@ -5,7 +5,7 @@
 package resources
 
 type ContainerAttributes struct {
-	Container string   `json:"container"`
+	Container []byte   `json:"container"`
 	Group     bool     `json:"group"`
 	Key       string   `json:"key,omitempty"`
 	Owner     string   `json:"owner"`

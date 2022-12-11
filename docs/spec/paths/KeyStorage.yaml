@@ -1,0 +1,77 @@
+post:
+  tags:
+    - Container
+  summary: container
+  operationId: container
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - data
+          properties:
+            data:
+              type: object
+              $ref: '#/components/schemas/Container'
+  responses:
+    '201':
+      description: Success
+    '400':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - errors
+            properties:
+              errors:
+                type: array
+                items:
+                  $ref: "#/components/responses/BadRequest"
+    '500':
+      $ref: "#/components/responses/InternalError"
+
+put:
+  tags:
+    - Container
+  summary: update  container
+  operationId: actionContainer
+  requestBody:
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - data
+          properties:
+            data:
+              type: object
+              $ref: '#/components/schemas/Container'
+  responses:
+    '200':
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                $ref: '#/components/schemas/Container'
+    '400':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - errors
+            properties:
+              errors:
+                type: array
+                items:
+                  $ref: "#/components/responses/BadRequest"
+    '500':
+      $ref: "#/components/responses/InternalError"

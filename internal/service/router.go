@@ -21,8 +21,8 @@ func (s *service) router(cfg config.Config) chi.Router {
 	)
 	r.Route("/KeyStorage", func(r chi.Router) {
 
-		r.Get("/{id}", handlers.GetContainer)
-		r.Post("/", handlers.CreateContainer)
+		r.Post("/get", handlers.GetContainer)
+		r.Post("/create", handlers.CreateContainer)
 
 	})
 
