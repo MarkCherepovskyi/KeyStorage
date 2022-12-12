@@ -52,6 +52,16 @@ func (q *ContainerQ) Insert(value data.Container) error {
 
 	return err
 }
+
+func (q *ContainerQ) Update(value data.Container) error {
+	clauses := structs.Map(value)
+
+	stmt := sq.Update(containersTableName).SetMap(clauses).Where(sq.Eq{"id": value.ID})
+	err := q.db.Exec(stmt)
+
+	return err
+}
+
 func (q *ContainerQ) Page(pageParams pgdb.OffsetPageParams) data.ContainerQ {
 	q.sql = pageParams.ApplyTo(q.sql, "id")
 	return q

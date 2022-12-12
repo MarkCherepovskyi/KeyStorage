@@ -2,35 +2,34 @@ package handlers
 
 import (
 	"crypto/sha256"
-	"github.com/tyler-smith/go-bip32"
-	"github.com/tyler-smith/go-bip39"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/data"
+	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/service/helpers"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/service/requests"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/resources"
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 func GetContainer(w http.ResponseWriter, r *http.Request) {
 	request, err := requests.NewGetContainerRequest(r)
 	if err != nil {
-		Log(r).WithError(err).Error("failed to create tx")
+		helpers.Log(r).WithError(err).Error("failed to create tx")
 		ape.Render(w, problems.InternalError())
 		return
 	}
 
 	id, err := strconv.Atoi(request.Data.ID)
 	if err != nil {
-		Log(r).WithError(err).Error("failed to create tx")
+		helpers.Log(r).WithError(err).Error("failed to create tx")
 		ape.Render(w, problems.InternalError())
 		return
 	}
-	container, err := ContainerQ(r).FilterByID(int64(id)).Get()
+
+	container, err := helpers.ContainerQ(r).FilterByID(int64(id)).Get()
 	if err != nil {
-		Log(r).WithError(err).Error("failed to get blob from DB")
+		helpers.Log(r).WithError(err).Error("failed to get blob from DB")
 		ape.Render(w, problems.InternalError())
 		return
 	}
@@ -39,15 +38,7 @@ func GetContainer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key := new(bip32.Key)
-
-	if strings.Contains(request.Data.Attributes.Key, " ") {
-
-		seed := bip39.NewSeed(request.Data.Attributes.Key, "TREZOR")
-
-		key, _ = bip32.NewMasterKey(seed)
-
-	}
+	key := helpers.Gene(request.Data.Attributes.Key)
 
 	var bufferContainer []byte
 
@@ -57,7 +48,7 @@ func GetContainer(w http.ResponseWriter, r *http.Request) {
 
 		bufferContainer, err = data.Decryption([]byte(request.Data.Attributes.Text), hash[:])
 		if err != nil {
-			Log(r).WithError(err).Error("failed to create blob in DB")
+			helpers.Log(r).WithError(err).Error("failed to create blob in DB")
 			ape.Render(w, problems.InternalError())
 			return
 		}
@@ -65,14 +56,14 @@ func GetContainer(w http.ResponseWriter, r *http.Request) {
 		hash := sha256.Sum256([]byte(request.Data.Attributes.Key))
 		bufferContainer, err = data.Decryption(container.Container, hash[:])
 		if err != nil {
-			Log(r).WithError(err).Error("failed to create blob in DB")
+			helpers.Log(r).WithError(err).Error("failed to create blob in DB")
 			ape.Render(w, problems.InternalError())
 			return
 		}
 	}
 
 	if err != nil {
-		Log(r).WithError(err).Error("failed to create tx")
+		helpers.Log(r).WithError(err).Error("failed to create tx")
 		ape.Render(w, problems.InternalError())
 		return
 	}

@@ -5,6 +5,7 @@ import (
 	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/config"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/data/pg"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/service/handlers"
+	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/service/helpers"
 	"gitlab.com/distributed_lab/ape"
 )
 
@@ -15,8 +16,8 @@ func (s *service) router(cfg config.Config) chi.Router {
 		ape.RecoverMiddleware(s.log),
 		ape.LoganMiddleware(s.log),
 		ape.CtxMiddleware(
-			handlers.CtxContainerQ(pg.NewContainerQ(cfg.DB())),
-			handlers.CtxLog(s.log),
+			helpers.CtxContainerQ(pg.NewContainerQ(cfg.DB())),
+			helpers.CtxLog(s.log),
 		),
 	)
 	r.Route("/KeyStorage", func(r chi.Router) {

@@ -16,6 +16,7 @@ type ContainerQ interface {
 	DelById(id ...int64) error
 	FilterByAddress(id ...string) ContainerQ
 	FilterByID(id ...int64) ContainerQ
+	Update(value Container) error
 }
 
 type Container struct {

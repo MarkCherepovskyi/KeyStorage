@@ -6,47 +6,26 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/data"
+	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/service/helpers"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/internal/service/requests"
 	"gitlab.com/MarkCherepovskyi/KeyStorage/resources"
 	"gitlab.com/distributed_lab/ape"
 	"gitlab.com/distributed_lab/ape/problems"
 	"io"
 
-	"github.com/tyler-smith/go-bip32"
-	"github.com/tyler-smith/go-bip39"
 	"net/http"
-	"strings"
 )
 
 func CreateContainer(w http.ResponseWriter, r *http.Request) {
 
 	request, err := requests.NewCreateContainerRequest(r)
 	if err != nil {
-		Log(r).WithError(err).Info("invalid request")
+		helpers.Log(r).WithError(err).Info("invalid request")
 		ape.RenderErr(w, problems.BadRequest(err)...)
 		return
 	}
 
-	key := new(bip32.Key)
-	seed := []byte("")
-
-	if request.Data.Attributes.Key == "" {
-		// Generate a mnemonic for memorization or user-friendly seeds
-		entropy, _ := bip39.NewEntropy(256)
-		mnemonic, _ := bip39.NewMnemonic(entropy)
-
-		// Generate a Bip32 HD wallet for the mnemonic and a user supplied password
-		seed = bip39.NewSeed(mnemonic, "Secret Passphrase")
-
-		key, _ = bip32.NewMasterKey(seed)
-	}
-	if strings.Contains(request.Data.Attributes.Key, " ") {
-
-		seed = bip39.NewSeed(request.Data.Attributes.Key, "TREZOR")
-
-		key, _ = bip32.NewMasterKey(seed)
-
-	}
+	key := helpers.Gene(request.Data.Attributes.Key)
 
 	encodedContainer := []byte("")
 
@@ -56,7 +35,7 @@ func CreateContainer(w http.ResponseWriter, r *http.Request) {
 
 		encodedContainer, err = data.Encryption([]byte(request.Data.Attributes.Text), hash[:])
 		if err != nil {
-			Log(r).WithError(err).Error("failed to create blob in DB")
+			helpers.Log(r).WithError(err).Error("failed to create blob in DB")
 			ape.Render(w, problems.InternalError())
 			return
 		}
@@ -64,7 +43,7 @@ func CreateContainer(w http.ResponseWriter, r *http.Request) {
 		hash := sha256.Sum256([]byte(request.Data.Attributes.Key))
 		encodedContainer, err = data.Encryption([]byte(request.Data.Attributes.Text), hash[:])
 		if err != nil {
-			Log(r).WithError(err).Error("failed to create blob in DB")
+			helpers.Log(r).WithError(err).Error("failed to create blob in DB")
 			ape.Render(w, problems.InternalError())
 			return
 		}
@@ -82,9 +61,9 @@ func CreateContainer(w http.ResponseWriter, r *http.Request) {
 		Tag:       request.Data.Attributes.Tag,
 	}
 
-	err = ContainerQ(r).Insert(container)
+	err = helpers.ContainerQ(r).Insert(container)
 	if err != nil {
-		Log(r).WithError(err).Error("failed to create blob in DB")
+		helpers.Log(r).WithError(err).Error("failed to create blob in DB")
 		ape.Render(w, problems.InternalError())
 		return
 	}
